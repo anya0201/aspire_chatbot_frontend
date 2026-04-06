@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASPIRE AI Tutor</title>
+    <style>
+        /* CSS: The Styling */
+        :root {
+            --bg-color: #0e1117;
+            --sidebar-bg: #262730;
+            --text-main: #fafafa;
+            --accent: #4A90E2;
+            --user-msg: #1f2937;
+            --bot-msg: #374151;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styling */
+        #sidebar {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+        }
+
+        #sidebar h2 { margin-top: 0; color: var(--accent); }
+        
+        input, button {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input { background-color: #3b3d45; color: white; }
+        button { background-color: var(--accent); color: white; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        button:hover { background-color: #357ABD; }
+
+        .hidden { display: none !important; }
+
+        /* Main Chat Area Styling */
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #chat-history {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 15px;
+            border-radius: 15px;
+            line-height: 1.5;
+        }
+
+        .user-message {
+            background-color: var(--user-msg);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .bot-message {
+            background-color: var(--bot-msg);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* Input Area Styling */
+        #input-container {
+            padding: 20px;
+            background-color: var(--bg-color);
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #333;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        /* Landing Page Styling */
+        #landing-page {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 10;
+        }
+        #landing-page h1 { color: var(--accent); font-size: 3rem; margin-bottom: 10px;}
+        #landing-page p { color: #A0AEC0; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <aside id="sidebar">
+        <h2>🔐 ASPIRE Login</h2>
+        
+        <div id="login-section">
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="handleLogin()" style="width: 100%;">Login</button>
+            <p id="login-status" style="color: #ff4a4a; font-size: 12px;"></p>
+        </div>
+
+        <div id="dashboard-section" class="hidden">
+            <h3 id="welcome-text"></h3>
+            <button onclick="checkPerformance()" style="width: 100%;">📊 My Performance</button>
+            <button onclick="checkLeaderboard()" style="width: 100%;">🏆 Leaderboard</button>
+        </div>
+    </aside>
+
+    <main id="main-content">
+        
+        <div id="landing-page">
+            <h1>Welcome to ASPIRE AI 🚀</h1>
+            <p>Your Personal, Data-Driven Smart Tutor.</p>
+            <p>👈 <b>Log in using the sidebar to start learning!</b></p>
+        </div>
+
+        <div id="chat-history" class="hidden">
+            <div class="message bot-message">Hello! Ask me anything, or type 'Quiz me' to begin. 😏</div>
+        </div>
+
+        <div id="input-container" class="hidden">
+            <input type="text" id="chat-input" placeholder="Ask ASPIRE AI..." onkeypress="handleEnter(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+
+    </main>
+
+    <script>
+        /* JAVASCRIPT: The Logic */
+        
+        // --- 🚨 REPLACE WITH YOUR RENDER BACKEND URL 🚨 ---
+        const BACKEND_URL = "https://your-aspire-backend.onrender.com"; 
+        
+        let currentUser = null;
+
+        // --- 1. Login Function ---
+        async function handleLogin() {
+            const userBox = document.getElementById("username").value;
+            const passBox = document.getElementById("password").value;
+            const statusText = document.getElementById("login-status");
+
+            statusText.innerText = "Logging in...";
+            statusText.style.color = "white";
+
+            try {
+                // Sending a GET request to your FastAPI /login endpoint
+                const response = await fetch(`${BACKEND_URL}/login?username=${userBox}&password=${passBox}`);
+                const data = await response.json();
+
+                if (response.ok && data.message.includes("Welcome")) {
+                    currentUser = userBox;
+                    
+                    // Hide Login, Show Dashboard & Chat
+                    document.getElementById("login-section").classList.add("hidden");
+                    document.getElementById("dashboard-section").classList.remove("hidden");
+                    document.getElementById("landing-page").classList.add("hidden");
+                    document.getElementById("chat-history").classList.remove("hidden");
+                    document.getElementById("input-container").classList.remove("hidden");
+                    
+                    document.getElementById("welcome-text").innerText = `Welcome back, ${currentUser}!`;
+                } else {
+                    statusText.innerText = "Invalid credentials!";
+                    statusText.style.color = "#ff4a4a";
+                }
+            } catch (error) {
+                statusText.innerText = "Backend is offline. Is Render awake?";
+                statusText.style.color = "#ff4a4a";
+            }
+        }
+
+        // --- 2. Chat Function ---
+        async function sendMessage() {
+            const inputField = document.getElementById("chat-input");
+            const messageText = inputField.value.trim();
+            if (!messageText) return;
+
+            // Clear input box
+            inputField.value = "";
+
+            // Add User message to UI
+            addMessageToUI(messageText, "user-message");
+
+            // Add "Thinking..." placeholder
+            const thinkingId = "thinking-" + Date.now();
+            addMessageToUI("Thinking...", "bot-message", thinkingId);
+
+            try {
+                // Send GET request to FastAPI /chat endpoint
+                const response = await fetch(`${BACKEND_URL}/chat?username=${currentUser}&user_input=${encodeURIComponent(messageText)}`);
+                const data = await response.json();
+                
+                // Remove thinking placeholder and add actual response
+                document.getElementById(thinkingId).remove();
+                addMessageToUI(data.response || "No response received.", "bot-message");
+
+            } catch (error) {
+                document.getElementById(thinkingId).innerText = "Error: Could not connect to ASPIRE Backend.";
+            }
+        }
+
+        // --- Helpers ---
+        function addMessageToUI(text, className, id = null) {
+            const chatBox = document.getElementById("chat-history");
+            const msgDiv = document.createElement("div");
+            msgDiv.className = `message ${className}`;
+            msgDiv.innerText = text;
+            if (id) msgDiv.id = id;
+            
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to bottom
+        }
+
+        function handleEnter(event) {
+            if (event.key === "Enter") sendMessage();
+        }
+
+        // --- Extra Features (Alert placeholders for Performance/Leaderboard) ---
+        async function checkPerformance() {
+            try {
+                const res = await fetch(`${BACKEND_URL}/performance?username=${currentUser}`);
+                const data = await res.json();
+                alert(`Score: ${data.score} / ${data.total}\nRecommendation: ${data.recommendation || 'Keep it up!'}`);
+            } catch (e) { alert("Failed to fetch performance."); }
+        }
+
+        async function checkLeaderboard() {
+            try {
+                const res = await fetch(`${BACKEND_URL}/leaderboard`);
+                const data = await res.json();
+                let boardText = "🏆 LEADERBOARD 🏆\n\n";
+                data.leaderboard.forEach((user, index) => {
+                    boardText += `${index + 1}. ${user.user} - Score: ${user.score}\n`;
+                });
+                alert(boardText);
+            } catch (e) { alert("Failed to fetch leaderboard."); }
+        }
+    </script>
+</body>
+</html>
