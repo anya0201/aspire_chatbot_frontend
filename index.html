@@ -3,269 +3,421 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASPIRE AI Tutor</title>
+    <title>ASPIRE AI | Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* CSS: The Styling */
+        /* --- Premium Aesthetic Variables --- */
         :root {
-            --bg-color: #0e1117;
-            --sidebar-bg: #262730;
-            --text-main: #fafafa;
-            --accent: #4A90E2;
-            --user-msg: #1f2937;
-            --bot-msg: #374151;
+            --bg-base: #0f172a; /* Deep Slate */
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-glow: #3b82f6; /* Electric Blue */
+            --accent-glow-alt: #8b5cf6; /* Deep Purple */
         }
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
             color: var(--text-main);
-            display: flex;
             height: 100vh;
+            display: flex;
             overflow: hidden;
+            position: relative;
         }
 
-        /* Sidebar Styling */
-        #sidebar {
-            width: 300px;
-            background-color: var(--sidebar-bg);
+        /* --- Animated Background Orbs --- */
+        .ambient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            opacity: 0.5;
+            animation: float 12s infinite alternate ease-in-out;
+        }
+        .orb-1 {
+            top: -10%; left: -10%;
+            width: 50vw; height: 50vw;
+            background: var(--accent-glow-alt);
+        }
+        .orb-2 {
+            bottom: -20%; right: -10%;
+            width: 60vw; height: 60vw;
+            background: var(--accent-glow);
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* --- Global Glassmorphism Class --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- Layout --- */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Keep above orbs */
             padding: 20px;
+            gap: 20px;
+            box-sizing: border-box;
+        }
+
+        /* --- Sidebar --- */
+        #sidebar {
+            width: 320px;
+            border-radius: 24px;
+            padding: 30px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+            gap: 20px;
+            transition: all 0.3s ease;
         }
 
-        #sidebar h2 { margin-top: 0; color: var(--accent); }
-        
+        h2.brand {
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.8rem;
+            margin: 0 0 10px 0;
+            font-weight: 600;
+        }
+
         input, button {
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            outline: none;
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.3s ease;
         }
 
-        input { background-color: #3b3d45; color: white; }
-        button { background-color: var(--accent); color: white; cursor: pointer; font-weight: bold; transition: 0.2s;}
-        button:hover { background-color: #357ABD; }
+        input:focus {
+            border-color: var(--accent-glow);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--accent-glow), var(--accent-glow-alt));
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px var(--accent-glow);
+        }
 
         .hidden { display: none !important; }
 
-        /* Main Chat Area Styling */
+        /* --- Main Chat Area --- */
         #main-content {
             flex: 1;
+            border-radius: 24px;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
             position: relative;
         }
 
         #chat-history {
             flex: 1;
-            padding: 30px;
+            padding: 40px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 24px;
+            scroll-behavior: smooth;
         }
 
+        /* Hide scrollbar for a cleaner look */
+        #chat-history::-webkit-scrollbar { width: 6px; }
+        #chat-history::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        /* Message Bubbles */
         .message {
-            max-width: 70%;
-            padding: 15px;
-            border-radius: 15px;
-            line-height: 1.5;
+            max-width: 75%;
+            padding: 18px 24px;
+            border-radius: 20px;
+            line-height: 1.6;
+            font-size: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .user-message {
-            background-color: var(--user-msg);
             align-self: flex-end;
-            border-bottom-right-radius: 2px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-bottom-right-radius: 4px;
         }
 
         .bot-message {
-            background-color: var(--bot-msg);
             align-self: flex-start;
-            border-bottom-left-radius: 2px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-bottom-left-radius: 4px;
         }
 
-        /* Input Area Styling */
-        #input-container {
-            padding: 20px;
-            background-color: var(--bg-color);
+        /* --- Input Container --- */
+        #input-wrapper {
+            padding: 24px 40px;
+            background: linear-gradient(to top, var(--bg-base) 40%, transparent);
+        }
+
+        .input-box {
             display: flex;
-            gap: 10px;
-            border-top: 1px solid #333;
+            gap: 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 8px;
+            backdrop-filter: blur(10px);
         }
 
-        #chat-input {
-            flex: 1;
-            padding: 15px;
-            border-radius: 8px;
+        .input-box input {
+            background: transparent;
+            border: none;
+            padding: 12px 20px;
             font-size: 16px;
         }
+        
+        .input-box input:focus { box-shadow: none; }
 
-        /* Landing Page Styling */
-        #landing-page {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: var(--bg-color);
+        .input-box button {
+            width: auto;
+            padding: 0 24px;
+            border-radius: 10px;
+        }
+
+        /* --- Loading Pulse --- */
+        .thinking {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            height: 24px;
+        }
+        .dot {
+            width: 8px; height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+        
+        /* Landing Centered */
+        .landing-center {
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            height: 100%;
             text-align: center;
-            z-index: 10;
+            animation: slideUp 0.8s ease forwards;
         }
-        #landing-page h1 { color: var(--accent); font-size: 3rem; margin-bottom: 10px;}
-        #landing-page p { color: #A0AEC0; font-size: 1.2rem; }
     </style>
 </head>
 <body>
 
-    <aside id="sidebar">
-        <h2>🔐 ASPIRE Login</h2>
-        
-        <div id="login-section">
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="password" placeholder="Password">
-            <button onclick="handleLogin()" style="width: 100%;">Login</button>
-            <p id="login-status" style="color: #ff4a4a; font-size: 12px;"></p>
-        </div>
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
 
-        <div id="dashboard-section" class="hidden">
-            <h3 id="welcome-text"></h3>
-            <button onclick="checkPerformance()" style="width: 100%;">📊 My Performance</button>
-            <button onclick="checkLeaderboard()" style="width: 100%;">🏆 Leaderboard</button>
-        </div>
-    </aside>
+    <div class="app-container">
+        <aside id="sidebar" class="glass-panel">
+            <h2 class="brand">ASPIRE.</h2>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top:-10px;">Intelligent Tutoring System</p>
+            
+            <div id="login-section">
+                <input type="text" id="username" placeholder="Username">
+                <input type="password" id="password" placeholder="Password">
+                <button onclick="handleLogin()">Authenticate</button>
+                <p id="login-status" style="font-size: 12px; margin-top: 10px; text-align:center;"></p>
+            </div>
 
-    <main id="main-content">
-        
-        <div id="landing-page">
-            <h1>Welcome to ASPIRE AI 🚀</h1>
-            <p>Your Personal, Data-Driven Smart Tutor.</p>
-            <p>👈 <b>Log in using the sidebar to start learning!</b></p>
-        </div>
+            <div id="dashboard-section" class="hidden" style="display: flex; flex-direction: column; gap: 12px;">
+                <h3 id="welcome-text" style="font-size: 15px; font-weight: 500;"></h3>
+                <button onclick="checkPerformance()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">📊 Performance</button>
+                <button onclick="checkLeaderboard()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">🏆 Leaderboard</button>
+            </div>
+        </aside>
 
-        <div id="chat-history" class="hidden">
-            <div class="message bot-message">Hello! Ask me anything, or type 'Quiz me' to begin. 😏</div>
-        </div>
+        <main id="main-content" class="glass-panel">
+            
+            <div id="landing-page" class="landing-center">
+                <h1 style="font-size: 3.5rem; margin-bottom: 10px; font-weight: 600;">Elevate your learning.</h1>
+                <p style="color: var(--text-muted); font-size: 1.2rem; max-width: 500px;">Experience a hyper-personalized AI tutor driven by your data. Log in to initialize session.</p>
+            </div>
 
-        <div id="input-container" class="hidden">
-            <input type="text" id="chat-input" placeholder="Ask ASPIRE AI..." onkeypress="handleEnter(event)">
-            <button onclick="sendMessage()">Send</button>
-        </div>
+            <div id="chat-history" class="hidden">
+                <div class="message bot-message">System initialized. How can I help you study today?</div>
+            </div>
 
-    </main>
+            <div id="input-wrapper" class="hidden">
+                <div class="input-box">
+                    <input type="text" id="chat-input" placeholder="Type a message or 'Quiz me'..." onkeypress="handleEnter(event)">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <script>
-        /* JAVASCRIPT: The Logic */
-        
-        // --- 🚨 REPLACE WITH YOUR RENDER BACKEND URL 🚨 ---
+        // --- 🚨 YOUR RENDER BACKEND URL 🚨 ---
         const BACKEND_URL = "https://your-aspire-backend.onrender.com"; 
         
         let currentUser = null;
 
-        // --- 1. Login Function ---
+        // --- Auth Logic ---
         async function handleLogin() {
             const userBox = document.getElementById("username").value;
             const passBox = document.getElementById("password").value;
             const statusText = document.getElementById("login-status");
 
-            statusText.innerText = "Logging in...";
-            statusText.style.color = "white";
+            statusText.innerText = "Authenticating...";
+            statusText.style.color = "var(--text-muted)";
 
             try {
-                // Sending a GET request to your FastAPI /login endpoint
                 const response = await fetch(`${BACKEND_URL}/login?username=${userBox}&password=${passBox}`);
                 const data = await response.json();
 
                 if (response.ok && data.message.includes("Welcome")) {
                     currentUser = userBox;
                     
-                    // Hide Login, Show Dashboard & Chat
                     document.getElementById("login-section").classList.add("hidden");
                     document.getElementById("dashboard-section").classList.remove("hidden");
                     document.getElementById("landing-page").classList.add("hidden");
                     document.getElementById("chat-history").classList.remove("hidden");
-                    document.getElementById("input-container").classList.remove("hidden");
+                    document.getElementById("input-wrapper").classList.remove("hidden");
                     
-                    document.getElementById("welcome-text").innerText = `Welcome back, ${currentUser}!`;
+                    document.getElementById("welcome-text").innerText = `Session active: ${currentUser}`;
                 } else {
-                    statusText.innerText = "Invalid credentials!";
-                    statusText.style.color = "#ff4a4a";
+                    statusText.innerText = "Access Denied.";
+                    statusText.style.color = "#ef4444";
                 }
             } catch (error) {
-                statusText.innerText = "Backend is offline. Is Render awake?";
-                statusText.style.color = "#ff4a4a";
+                statusText.innerText = "Server Unreachable.";
+                statusText.style.color = "#ef4444";
             }
         }
 
-        // --- 2. Chat Function ---
+        // --- Chat Logic ---
         async function sendMessage() {
             const inputField = document.getElementById("chat-input");
             const messageText = inputField.value.trim();
             if (!messageText) return;
 
-            // Clear input box
             inputField.value = "";
-
-            // Add User message to UI
             addMessageToUI(messageText, "user-message");
 
-            // Add "Thinking..." placeholder
+            // UI: Show Thinking animation
             const thinkingId = "thinking-" + Date.now();
-            addMessageToUI("Thinking...", "bot-message", thinkingId);
+            const thinkHtml = `<div class="thinking"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+            addHTMLToUI(thinkHtml, "bot-message", thinkingId);
 
             try {
-                // Send GET request to FastAPI /chat endpoint
                 const response = await fetch(`${BACKEND_URL}/chat?username=${currentUser}&user_input=${encodeURIComponent(messageText)}`);
                 const data = await response.json();
                 
-                // Remove thinking placeholder and add actual response
                 document.getElementById(thinkingId).remove();
-                addMessageToUI(data.response || "No response received.", "bot-message");
+                
+                // Trigger Typewriter Effect for the Bot's response
+                typeWriterEffect(data.response || "No response received.");
 
             } catch (error) {
-                document.getElementById(thinkingId).innerText = "Error: Could not connect to ASPIRE Backend.";
+                document.getElementById(thinkingId).innerText = "Connection lost.";
             }
         }
 
         // --- Helpers ---
-        function addMessageToUI(text, className, id = null) {
+        function addMessageToUI(text, className) {
             const chatBox = document.getElementById("chat-history");
             const msgDiv = document.createElement("div");
             msgDiv.className = `message ${className}`;
             msgDiv.innerText = text;
-            if (id) msgDiv.id = id;
-            
             chatBox.appendChild(msgDiv);
-            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function addHTMLToUI(html, className, id) {
+            const chatBox = document.getElementById("chat-history");
+            const msgDiv = document.createElement("div");
+            msgDiv.className = `message ${className}`;
+            msgDiv.id = id;
+            msgDiv.innerHTML = html;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Aesthetic Typewriter Effect
+        function typeWriterEffect(text) {
+            const chatBox = document.getElementById("chat-history");
+            const msgDiv = document.createElement("div");
+            msgDiv.className = "message bot-message";
+            chatBox.appendChild(msgDiv);
+            
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    msgDiv.innerHTML += text.charAt(i);
+                    i++;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    setTimeout(type, 15); // Speed of typing
+                }
+            }
+            type();
         }
 
         function handleEnter(event) {
             if (event.key === "Enter") sendMessage();
         }
 
-        // --- Extra Features (Alert placeholders for Performance/Leaderboard) ---
+        // --- Alert Placeholders (Can be upgraded later) ---
         async function checkPerformance() {
             try {
                 const res = await fetch(`${BACKEND_URL}/performance?username=${currentUser}`);
                 const data = await res.json();
-                alert(`Score: ${data.score} / ${data.total}\nRecommendation: ${data.recommendation || 'Keep it up!'}`);
-            } catch (e) { alert("Failed to fetch performance."); }
+                alert(`SCORE: ${data.score} / ${data.total}\nSYSTEM REC: ${data.recommendation || 'Optimal performance detected.'}`);
+            } catch (e) { alert("Failed to fetch telemetry."); }
         }
 
         async function checkLeaderboard() {
             try {
                 const res = await fetch(`${BACKEND_URL}/leaderboard`);
                 const data = await res.json();
-                let boardText = "🏆 LEADERBOARD 🏆\n\n";
+                let boardText = "=== GLOBAL RANKINGS ===\n\n";
                 data.leaderboard.forEach((user, index) => {
-                    boardText += `${index + 1}. ${user.user} - Score: ${user.score}\n`;
+                    boardText += `[${index + 1}] ${user.user} | Score: ${user.score}\n`;
                 });
                 alert(boardText);
-            } catch (e) { alert("Failed to fetch leaderboard."); }
+            } catch (e) { alert("Network error."); }
         }
     </script>
 </body>
